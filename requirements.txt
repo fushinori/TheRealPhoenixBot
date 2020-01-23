@@ -1,6 +1,6 @@
 future
 emoji
-requests==2.3.0
+requests==2.20.0
 sqlalchemy
 python-telegram-bot==11.1.0
 psycopg2-binary
