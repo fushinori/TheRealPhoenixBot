@@ -14,7 +14,6 @@ bleach
 markdown2
 speedtest-cli
 wikipedia
-pylast
 jikanpy
 coffeehouse
 tswift
