@@ -266,6 +266,28 @@ def judge(bot: Bot, update: Update):
         user = msg.from_user.first_name
     res = random.choice(judger)
     reply = msg.reply_text(f"{user} {res}", parse_mode=ParseMode.HTML)
+    
+    
+normiefont = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+weebyfont = ['卂','乃','匚','刀','乇','下','厶','卄','工','丁','长','乚','从','𠘨','口','尸','㔿','尺','丂','丅','凵','リ','山','乂','丫','乙']
+
+
+@run_async
+def weebify(bot: Bot, update: Update, args):
+    msg = update.effective_message
+    if args:
+        string = " ".join(args).lower()
+    else:
+        string = msg.reply_to_message.text.lower()
+    for normiecharacter in string:
+        if normiecharacter in normiefont:
+            weebycharacter = weebyfont[normiefont.index(normiecharacter)]
+            string = string.replace(normiecharacter, weebycharacter)
+
+    if msg.reply_to_message:
+        msg.reply_to_message.reply_text(string)
+    else:
+        msg.reply_text(string)
 
 
 
@@ -278,9 +300,12 @@ __help__ = """
  - /shout <word>: shout the specified word in the chat.
  - /wiki <term>: do a search on Wikipedia.
  - /judge: as a reply to someone, checks if they're lying or not!
+ - /weebify: as a reply to a message, "weebifies" the message.
 """
 
 __mod_name__ = "Extras"
+
+
 SHRUG_HANDLER = DisableAbleCommandHandler(["shrug", "shg"], shrug)
 HUG_HANDLER = DisableAbleCommandHandler("hug", hug)
 REACT_HANDLER = DisableAbleCommandHandler("react", react)
@@ -289,6 +314,7 @@ SHOUT_HANDLER = DisableAbleCommandHandler("shout", shout, pass_args=True)
 PAT_HANDLER = DisableAbleCommandHandler("pat", pat)
 WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki)
 JUDGE_HANDLER = DisableAbleCommandHandler("judge", judge)
+WEEBIFY_HANDLER = DisableAbleCommandHandler("weebify", weebify, pass_args=True)
 
 dispatcher.add_handler(SHRUG_HANDLER)
 dispatcher.add_handler(HUG_HANDLER)
@@ -298,3 +324,4 @@ dispatcher.add_handler(TOSS_HANDLER)
 dispatcher.add_handler(PAT_HANDLER)
 dispatcher.add_handler(WIKI_HANDLER)
 dispatcher.add_handler(JUDGE_HANDLER)
+dispatcher.add_handler(WEEBIFY_HANDLER)
