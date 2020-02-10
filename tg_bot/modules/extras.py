@@ -160,6 +160,9 @@ REACTS = (
     "(｡◕‿◕｡)",
 )
 
+normiefont = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+weebyfont = ['卂','乃','匚','刀','乇','下','厶','卄','工','丁','长','乚','从','𠘨','口','尸','㔿','尺','丂','丅','凵','リ','山','乂','丫','乙']
+
 
 @run_async
 def shrug(bot: Bot, update: Update):
@@ -266,10 +269,6 @@ def judge(bot: Bot, update: Update):
         user = msg.from_user.first_name
     res = random.choice(judger)
     reply = msg.reply_text(f"{user} {res}", parse_mode=ParseMode.HTML)
-    
-    
-normiefont = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
-weebyfont = ['卂','乃','匚','刀','乇','下','厶','卄','工','丁','长','乚','从','𠘨','口','尸','㔿','尺','丂','丅','凵','リ','山','乂','丫','乙']
 
 
 @run_async
@@ -277,8 +276,12 @@ def weebify(bot: Bot, update: Update, args):
     msg = update.effective_message
     if args:
         string = " ".join(args).lower()
-    else:
+    elif msg.reply_to_message:
         string = msg.reply_to_message.text.lower()
+    else:
+        msg.reply_text("Enter some text to weebify or reply to someone's message!")
+        return
+        
     for normiecharacter in string:
         if normiecharacter in normiefont:
             weebycharacter = weebyfont[normiefont.index(normiecharacter)]
