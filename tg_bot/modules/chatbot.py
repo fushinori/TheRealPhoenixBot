@@ -1,7 +1,8 @@
 # AI module using Intellivoid's Coffeehouse API by @TheRealPhoenix
-
 from time import time, sleep
-import coffeehouse as cf
+
+from coffeehouse.lydia import LydiaAI
+from coffeehouse.api import API
 from coffeehouse.exception import CoffeeHouseError as CFError
 
 from telegram import Message, Chat, User, Update, Bot
@@ -11,11 +12,14 @@ from tg_bot import dispatcher, AI_API_KEY, OWNER_ID
 import tg_bot.modules.sql.chatbot_sql as sql
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 
-api_client = cf.API(AI_API_KEY)
+
+CoffeeHouseAPI = API(AI_API_KEY)
+api_client = LydiaAI(CoffeeHouseAPI)
 
 
 @run_async
 def add_chat(bot: Bot, update: Update):
+    global api_client
     chat_id = update.effective_chat.id
     msg = update.effective_message
     is_chat = sql.is_chat(chat_id)
@@ -54,30 +58,33 @@ def check_message(bot: Bot, message):
         
 @run_async
 def chatbot(bot: Bot, update: Update):
+    global api_client
     msg = update.effective_message
     chat_id = update.effective_chat.id
     is_chat = sql.is_chat(chat_id)
-    if is_chat:
-        if msg.text and not msg.document:
-            sesh, exp = sql.get_ses(chat_id)
-            if check_message(bot, msg):
-                query = msg.text
-                try:
-                    if int(exp) < time():
-                        ses = api_client.create_session()
-                        ses_id = str(ses.id)
-                        expires = str(ses.expires)
-                        sql.set_ses(chat_id, ses_id, expires)
-                        sesh, exp = sql.get_ses(chat_id)
-                except ValueError:
-                    pass
-                try:
-                    bot.send_chat_action(chat_id, action='typing')
-                    sleep(0.3)
-                    rep = api_client.think_thought(sesh, query)
-                    msg.reply_text(rep)
-                except CFError as e:
-                    bot.send_message(OWNER_ID, f"Chatbot error: {e} occurred in {chat_id}!")
+    if not is_chat:
+        return
+    if msg.text and not msg.document:
+        if not check_message(bot, msg):
+            return
+        sesh, exp = sql.get_ses(chat_id)
+        query = msg.text
+        try:
+            if int(exp) < time():
+                ses = api_client.create_session()
+                ses_id = str(ses.id)
+                expires = str(ses.expires)
+                sql.set_ses(chat_id, ses_id, expires)
+                sesh, exp = sql.get_ses(chat_id)
+        except ValueError:
+            pass
+        try:
+            bot.send_chat_action(chat_id, action='typing')
+            rep = api_client.think_thought(sesh, query)
+            sleep(0.3)
+            msg.reply_text(rep, timeout=60)
+        except CFError as e:
+            bot.send_message(OWNER_ID, f"Chatbot error: {e} occurred in {chat_id}!")
                     
                     
 ADD_CHAT_HANDLER = CommandHandler("addchat", add_chat, filters=CustomFilters.dev_filter)
