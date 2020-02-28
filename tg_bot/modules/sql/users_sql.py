@@ -192,3 +192,5 @@ def rem_chat(chat_id):
         if chat:
             SESSION.delete(chat)
             SESSION.commit()
+        else:
+            SESSION.close()
