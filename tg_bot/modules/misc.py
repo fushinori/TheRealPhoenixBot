@@ -9,7 +9,7 @@ import speedtest
 
 import requests
 from telegram import Message, Chat, Update, Bot, MessageEntity
-from telegram import ParseMode
+from telegram import ParseMode, ReplyKeyboardRemove
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 
@@ -458,6 +458,15 @@ def speed_test(bot: Bot, update: Update):
 	update.effective_message.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
 
 
+@run_async
+def remove_keyboard(bot: Bot, update: Update):
+    chat = update.effective_chat.id
+    text = "Removing keyboards..."
+    msg = bot.send_message(chat, text, reply_markup=ReplyKeyboardRemove(selective=False))
+    msg.delete()
+    bot.send_message(chat, "Done!")
+
+
 # /ip is for private use
 __help__ = """
  - /ping: pings the bot.
@@ -491,6 +500,7 @@ PING_HANDLER = DisableAbleCommandHandler("ping", ping)
 SUDO_LIST_HANDLER = CommandHandler("sudolist", sudo_list, filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
 SUPPORT_LIST_HANDLER = CommandHandler("supportlist", support_list, filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
 SPEEDTEST_HANDLER = CommandHandler("speed", speed_test, filters=CustomFilters.sudo_filter)
+REMOVE_KB_HANDLER = CommandHandler(["clearkeys", "nokeyboard"], remove_keyboard, filters=Filters.group)
 
 dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(IP_HANDLER)
@@ -507,3 +517,4 @@ dispatcher.add_handler(PING_HANDLER)
 dispatcher.add_handler(SUDO_LIST_HANDLER)
 dispatcher.add_handler(SUPPORT_LIST_HANDLER)
 dispatcher.add_handler(SPEEDTEST_HANDLER)
+dispatcher.add_handler(REMOVE_KB_HANDLER)
