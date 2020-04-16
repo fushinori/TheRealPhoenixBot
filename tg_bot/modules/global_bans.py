@@ -282,7 +282,10 @@ def clear_gbans(bot: Bot, update: Update):
         id = user["user_id"]
         time.sleep(0.1) # Reduce floodwait
         try:
-            bot.get_chat(id)
+            acc = bot.get_chat(id)
+            if not acc.first_name:
+                deleted += 1
+                sql.ungban_user(id)
         except BadRequest:
             deleted += 1
             sql.ungban_user(id)
@@ -299,10 +302,12 @@ def check_gbans(bot: Bot, update: Update):
         id = user["user_id"]
         time.sleep(0.1) # Reduce floodwait
         try:
-            bot.get_chat(id)
+            acc = bot.get_chat(id)
+            if not acc.first_name:
+                deleted += 1
         except BadRequest:
             deleted += 1
-    if deleted >= 1:
+    if deleted:
         update.message.reply_text("`{}` deleted accounts found in the gbanlist! " \
         "Run /cleangb to remove them from the database!".format(deleted),
         parse_mode=ParseMode.MARKDOWN)
