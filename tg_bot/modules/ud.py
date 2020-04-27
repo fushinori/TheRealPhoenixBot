@@ -10,13 +10,15 @@ from requests import get
 def ud(bot: Bot, update: Update):
     msg = update.effective_message.reply_to_message if update.message.reply_to_message else update.effective_message
     if msg == update.effective_message:
-        text = msg.text[len('/ud '):]
+        text = msg.text.split(' ', 1)
+        text = text[1] if len(text) >  1 else ''
     # Args should take more precedence. Hence even if it's a reply, it'll query what you typed
     elif msg == update.effective_message.reply_to_message and len(update.effective_message.text) > 3:
-        text = update.effective_message.text[len('/ud '):]
+        text = update.effective_message.text.split(' ', 1)
+        text = text[1] if len(text) >  1 else ''
     else:
         text = msg.text
-    if text == "":
+    if text = '':
         update.message.reply_text("Please enter a query to look up on Urban Dictionary!")
     else:
         results = get(f'http://api.urbandictionary.com/v0/define?term={text}').json()
