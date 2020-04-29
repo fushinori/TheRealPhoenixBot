@@ -12,6 +12,7 @@ from telegram import Message, Chat, Update, Bot, MessageEntity
 from telegram import ParseMode, ReplyKeyboardRemove
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
+from telegram.error import BadRequest, Unauthorized, TelegramError
 
 from tg_bot import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, BAN_STICKER
 from tg_bot.modules.sql.blacklistusers_sql import BLACKLIST_USERS
@@ -467,6 +468,38 @@ def remove_keyboard(bot: Bot, update: Update):
     bot.send_message(chat, "Done!")
 
 
+@run_async
+def leave_chat(bot: Bot, update: Update, args):
+    try:
+        chat_id = args[0]
+    except IndexError:
+        chat_id = None
+    msg = update.effective_message
+    if not chat_id:
+        msg.reply_text("Which chat should I leave?")
+        return
+    try:
+        chat = bot.get_chat(chat_id)
+    except BadRequest:
+        msg.reply_text("Give me a valid ID!")
+        return
+    reason = " ".join(args[1:])
+    if reason:
+        try:
+            chat.send_message(
+                f"I'm outta here!\nReason: <code>{reason}</code>",
+                parse_mode="HTML"
+            )
+        except BadRequest:
+            pass
+        except Unauthorized:
+            pass
+    try:
+        chat.leave()
+    except TelegramError as e:
+        msg.reply_text(f"Couldn't leave chat:\n{e}") 
+    
+
 # /ip is for private use
 __help__ = """
  - /ping: pings the bot.
@@ -501,6 +534,7 @@ SUDO_LIST_HANDLER = CommandHandler("sudolist", sudo_list, filters=CustomFilters.
 SUPPORT_LIST_HANDLER = CommandHandler("supportlist", support_list, filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
 SPEEDTEST_HANDLER = CommandHandler("speed", speed_test, filters=CustomFilters.sudo_filter)
 REMOVE_KB_HANDLER = CommandHandler(["clearkeys", "nokeyboard"], remove_keyboard, filters=Filters.group)
+LEAVE_CHAT_HANDLER = CommandHandler(["leave", "yeet"], leave_chat, filters=Filters.user(OWNER_ID), pass_args=True)
 
 dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(IP_HANDLER)
@@ -518,3 +552,4 @@ dispatcher.add_handler(SUDO_LIST_HANDLER)
 dispatcher.add_handler(SUPPORT_LIST_HANDLER)
 dispatcher.add_handler(SPEEDTEST_HANDLER)
 dispatcher.add_handler(REMOVE_KB_HANDLER)
+dispatcher.add_handler(LEAVE_CHAT_HANDLER)
