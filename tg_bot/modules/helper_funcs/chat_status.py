@@ -169,3 +169,16 @@ def user_not_admin(func):
             return func(bot, update, *args, **kwargs)
 
     return is_not_admin
+
+
+def user_can_ban(func):
+    @wraps(func)
+    def user_is_banhammer(bot: Bot, update: Update, *args, **kwargs):
+        user = update.effective_user.id
+        member = update.effective_chat.get_member(user)
+        if not (member.can_restrict_members or member.status == "creator") and not user in SUDO_USERS:
+            update.effective_message.reply_text("Sorry son, but you're not worthy to wield the banhammer.")
+            return ""
+        return func(bot, update, *args, **kwargs)
+    
+    return user_is_banhammer
