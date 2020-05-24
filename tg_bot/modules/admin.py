@@ -26,6 +26,12 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
 
+    promoter = chat.get_member(user.id)
+    
+    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text("You don't have the necessary rights to do that!")
+        return ""
+
     user_id = extract_user(message, args)
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
