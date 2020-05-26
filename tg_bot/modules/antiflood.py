@@ -1,13 +1,16 @@
 import html
+import re
 from typing import Optional, List
 
-from telegram import Message, Chat, Update, Bot, User
+from telegram import Message, Chat, Update, Bot, User, \
+InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import BadRequest
-from telegram.ext import Filters, MessageHandler, CommandHandler, run_async
+from telegram.ext import Filters, MessageHandler, CommandHandler, CallbackQueryHandler, run_async
 from telegram.utils.helpers import mention_html
 
 from tg_bot import dispatcher
-from tg_bot.modules.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
+from tg_bot.modules.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict, \
+bot_admin, user_admin_no_reply
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.sql import antiflood_sql as sql
 
@@ -29,27 +32,66 @@ def check_flood(bot: Bot, update: Update) -> str:
         sql.update_flood(chat.id, None)
         return ""
 
-    should_ban = sql.update_flood(chat.id, user.id)
-    if not should_ban:
+    should_mute = sql.update_flood(chat.id, user.id)
+    if not should_mute:
         return ""
 
     try:
-        chat.kick_member(user.id)
-        msg.reply_text("I like to leave the flooding to natural disasters. But you, you were just a "
-                       "disappointment. Get out.")
+        bot.restrict_chat_member(
+            chat.id,
+            user.id,
+            can_send_messages=False
+        )
+        
+        keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("Unmute", callback_data="unmute_flooder({})".format(user.id))]]
+        )
+        msg.reply_text(
+            f"{mention_html(user.id, user.first_name)} has been muted for flooding the group!",
+            reply_markup=keyboard,
+            parse_mode="HTML"
+        )
+            
 
         return "<b>{}:</b>" \
-               "\n#BANNED" \
+               "\n#MUTED" \
                "\n<b>User:</b> {}" \
                "\nFlooded the group.".format(html.escape(chat.title),
                                              mention_html(user.id, user.first_name))
 
     except BadRequest:
-        msg.reply_text("I can't kick people here, give me permissions first! Until then, I'll disable antiflood.")
+        msg.reply_text("I can't mute people here, give me permissions first! Until then, I'll disable antiflood.")
         sql.set_flood(chat.id, 0)
         return "<b>{}:</b>" \
                "\n#INFO" \
                "\nDon't have kick permissions, so automatically disabled antiflood.".format(chat.title)
+
+
+@run_async
+@user_admin_no_reply
+@bot_admin
+def flood_button(bot: Bot, update: Update):
+    query = update.callback_query
+    user = update.effective_user
+    match = re.match(r"unmute_flooder\((.+?)\)", query.data)
+    if match:
+        user_id = match.group(1)
+        chat = update.effective_chat.id
+        try:
+            bot.restrict_chat_member(
+                chat,
+                int(user_id),
+                can_send_messages=True,
+                can_send_media_messages=True,
+                can_send_other_messages=True,
+                can_add_web_page_previews=True
+            )
+            update.effective_message.edit_text(
+                f"Unmuted by {mention_html(user.id, user.first_name)}.",
+                parse_mode="HTML"
+            )
+        except:
+            pass
 
 
 @run_async
@@ -130,9 +172,11 @@ __help__ = """
 __mod_name__ = "Anti-Flood"
 
 FLOOD_BAN_HANDLER = MessageHandler(Filters.all & ~Filters.status_update & Filters.group, check_flood)
+FLOOD_QUERY_HANDLER = CallbackQueryHandler(flood_button, pattern=r"unmute_flooder")
 SET_FLOOD_HANDLER = CommandHandler("setflood", set_flood, pass_args=True, filters=Filters.group)
 FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.group)
 
 dispatcher.add_handler(FLOOD_BAN_HANDLER, FLOOD_GROUP)
+dispatcher.add_handler(FLOOD_QUERY_HANDLER)
 dispatcher.add_handler(SET_FLOOD_HANDLER)
 dispatcher.add_handler(FLOOD_HANDLER)
