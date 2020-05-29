@@ -46,12 +46,24 @@ def check_flood(bot: Bot, update: Update) -> str:
         keyboard = InlineKeyboardMarkup(
             [[InlineKeyboardButton("Unmute", callback_data="unmute_flooder({})".format(user.id))]]
         )
-        msg.reply_text(
-            f"{mention_html(user.id, user.first_name)} has been muted for flooding the group!",
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
-            
+        try:
+            msg.reply_text(
+                f"{mention_html(user.id, user.first_name)} has been muted for flooding the group!",
+                reply_markup=keyboard,
+                parse_mode="HTML"
+            )
+        except BadRequest as e:
+            if e.message == "Reply message not found":
+                bot.send_message(
+                    chat.id,
+                    f"{mention_html(user.id, user.first_name)} has been muted for flooding the group!",
+                    reply_markup=keyboard,
+                    parse_mode="HTML"
+                )
+            else:
+                pass
+
+        
 
         return "<b>{}:</b>" \
                "\n#MUTED" \
