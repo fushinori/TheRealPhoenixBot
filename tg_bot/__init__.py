@@ -66,6 +66,10 @@ if ENV:
     WALL_API = os.environ.get('WALL_API', "")
     MOE_API = os.environ.get('MOE_API', "")
     AI_API_KEY = os.environ.get('AI_API_KEY', "")
+    try:
+        BL_CHATS = set(int(x) for x in os.environ.get('BL_CHATS', "").split())
+    except ValueError:
+        raise Exception("Your blacklisted chats list does not contain valid integers.")
 
 else:
     from tg_bot.config import Development as Config
@@ -116,6 +120,10 @@ else:
     WALL_API = Config.WALL_API
     MOE_API = Config.MOE_API
     AI_API_KEY = Config.AI_API_KEY
+    try:
+        BL_CHATS = set(int(x) for x in Config.BL_CHATS or [])
+    except ValueError:
+        raise Exception ("Your blacklisted chats list does not contain valid integers.")
 
 
 SUDO_USERS.add(OWNER_ID)
