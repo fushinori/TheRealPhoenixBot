@@ -56,6 +56,10 @@
          "description": "A space separated list of user IDs who you wanna assign as support users(gban perms only).",
          "value": "254318997 18673980 83489514"
       },
+      "BL_CHATS": {
+          "description": "A space separated list of chat IDs to blacklist. Bot will leave those chats when added to them.",
+          "value": ""
+      },
       "TOKEN": {
          "description": "Your bot token.",
          "value": ""
@@ -68,7 +72,7 @@
       "WEBHOOK": {
          "description": "Setting this to ANYTHING will enable webhooks.",
          "required": false,
-         "value": "ANYTHING"
+         "value": ""
       },
       "WHITELIST_USERS": {
          "description": "A space separated list of user IDs who you want to assign as whitelisted - can't be banned with your bot.",
