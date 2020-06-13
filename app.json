@@ -58,6 +58,7 @@
       },
       "BL_CHATS": {
           "description": "A space separated list of chat IDs to blacklist. Bot will leave those chats when added to them.",
+          "required": false,
           "value": ""
       },
       "TOKEN": {
