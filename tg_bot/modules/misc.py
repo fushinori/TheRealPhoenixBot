@@ -408,13 +408,14 @@ def stats(bot: Bot, update: Update):
     update.effective_message.reply_text("Current stats:\n" + "\n".join([mod.__stats__() for mod in STATS]))
 
 
-@run_async 
+@run_async
 def ping(bot: Bot, update: Update):
+    msg = update.effective_message
     start_time = time.time()
-    requests.get('https://api.telegram.org')
+    message = msg.reply_text("Pinging...")
     end_time = time.time()
     ping_time = round((end_time - start_time)*1000, 3)
-    update.effective_message.reply_text("*Pong!!!*\n`{}ms`".format(ping_time), parse_mode=ParseMode.MARKDOWN)
+    message.edit_text("*Pong!!!*\n`{}ms`".format(ping_time), parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
