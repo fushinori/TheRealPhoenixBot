@@ -9,12 +9,12 @@ from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import tg_bot.modules.sql.global_bans_sql as sql
-from tg_bot import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, STRICT_GBAN
+from tg_bot import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, STRICT_GBAN, WHITELIST_USERS
 from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
-from tg_bot.modules.sql.users_sql import get_all_chats
+from tg_bot.modules.sql.users_sql import get_all_chats, get_user_com_chats
 
 GBAN_ENFORCE_GROUP = 6
 
@@ -29,7 +29,8 @@ GBAN_ERRORS = {
     "Chat_admin_required",
     "Only the creator of a basic group can kick group administrators",
     "Channel_private",
-    "Not in the chat"
+    "Not in the chat",
+    "Can't remove chat owner"
 }
 
 UNGBAN_ERRORS = {
@@ -64,7 +65,11 @@ def gban(bot: Bot, update: Update, args: List[str]):
         message.reply_text("OOOH someone's trying to gban a support user! *grabs popcorn*")
         return
 
-    if user_id == bot.id:
+    if int(user_id) in WHITELIST_USERS:
+        message.reply_text("Yeah... I'm not gonna gban a whitelisted user.")
+        return
+
+    if int(user_id) == bot.id:
         message.reply_text("Nice try but I ain't gonna gban myself!")
         return
 
@@ -91,6 +96,7 @@ def gban(bot: Bot, update: Update, args: List[str]):
         if old_reason:
             if old_reason == reason:
                 message.reply_text("This user is already gbanned for the exact same reason!")
+                return
             else:
                 message.reply_text("This user is already gbanned, for the following reason:\n"
                                    "<code>{}</code>\n"
@@ -113,16 +119,22 @@ def gban(bot: Bot, update: Update, args: List[str]):
 
     sql.gban_user(user_id, user_chat.username or user_chat.first_name, reason)
 
-    chats = get_all_chats()
+    chats = get_user_com_chats(user_id)
+    if not chats:
+        message.reply_text("No common chats with this user! Will yeet them once I see them though!")
+        return
     for chat in chats:
-        chat_id = chat.chat_id
+        chat_id = int(chat)
 
         # Check if this group has disabled gbans
         if not sql.does_chat_gban(chat_id):
             continue
 
+        gbanned_chats = 0
+
         try:
             bot.kick_chat_member(chat_id, user_id)
+            gbanned_chats += 1
         except BadRequest as excp:
             if excp.message in GBAN_ERRORS:
                 pass
@@ -135,11 +147,15 @@ def gban(bot: Bot, update: Update, args: List[str]):
             pass
 
     send_to_list(bot, SUDO_USERS, "Gban complete!")
-    message.reply_text("Done! {} has been globally banned.".format(mention_html(user_chat.id, user_chat.first_name)),
-                       parse_mode=ParseMode.HTML)
+    if gbanned_chats:
+        message.reply_text("Done! {} has been globally banned in <code>{}</code> common chats.".format(mention_html(user_chat.id, user_chat.first_name),
+                       gbanned_chats), parse_mode=ParseMode.HTML)
+    else:
+        message.reply_text(f"Done! {mention_html(user_chat.id, user_chat.first_name)} has been added to the gbans database!",
+                           parse_mode=ParseMode.HTML)
 
     try:
-        bot.send_message(user_id, "You've been globally banned from all groups where I am admin. If this is a mistake, you can appeal your ban @PhoenixSupport",parse_mode=ParseMode.HTML)
+        bot.send_message(user_id, "You've been globally banned from all groups where I am admin. If this is a mistake, you can appeal your ban @PhoenixSupport", parse_mode=ParseMode.HTML)
     except:
         pass #Bot either blocked or never started by user
 
