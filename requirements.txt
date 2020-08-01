@@ -14,6 +14,6 @@ bleach
 markdown2
 speedtest-cli
 wikipedia
-jikanpy
+malclient
 coffeehouse
 tswift
