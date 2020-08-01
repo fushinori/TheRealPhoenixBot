@@ -66,6 +66,9 @@ if ENV:
     WALL_API = os.environ.get('WALL_API', "")
     MOE_API = os.environ.get('MOE_API', "")
     AI_API_KEY = os.environ.get('AI_API_KEY', "")
+    MAL_CLIENT_ID = os.environ.get('MAL_CLIENT_ID', "")
+    MAL_ACCESS_TOKEN = os.environ.get('MAL_ACCESS_TOKEN', "")
+    MAL_REFRESH_TOKEN = os.environ.get('MAL_REFRESH_TOKEN', "")
     try:
         BL_CHATS = set(int(x) for x in os.environ.get('BL_CHATS', "").split())
     except ValueError:
@@ -120,6 +123,9 @@ else:
     WALL_API = Config.WALL_API
     MOE_API = Config.MOE_API
     AI_API_KEY = Config.AI_API_KEY
+    MAL_CLIENT_ID = Config.MAL_CLIENT_ID
+    MAL_ACCESS_TOKEN = Config.MAL_ACCESS_TOKEN
+    MAL_REFRESH_TOKEN = Config.MAL_REFRESH_TOKEN
     try:
         BL_CHATS = set(int(x) for x in Config.BL_CHATS or [])
     except ValueError:
