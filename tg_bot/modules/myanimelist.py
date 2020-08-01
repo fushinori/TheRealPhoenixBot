@@ -31,6 +31,9 @@ def refresh_token(msg: Message, error: APIException) -> None:
 def search_anime(bot: Bot, update: Update, args: List[str]) -> None:
     msg = update.effective_message
     query = " ".join(args)
+    if not query:
+        msg.reply_text("I can't search for nothing...")
+        return
     try:
         anime = client.search_anime(query)
         anime_id = anime[0].id
@@ -82,6 +85,9 @@ def search_anime(bot: Bot, update: Update, args: List[str]) -> None:
 def search_manga(bot: Bot, update: Update, args: List[str]) -> None:
     msg = update.effective_message
     query = " ".join(args)
+    if not query:
+        msg.reply_text("I can't search for nothing...")
+        return
     try:
         manga = client.search_manga(query)
         manga_id = manga[0].id
