@@ -36,12 +36,12 @@ def search_anime(bot: Bot, update: Update, args: List[str]) -> None:
         return
     try:
         anime = client.search_anime(query)
-        anime_id = anime[0].id
     except APIException as e:
         refresh_token(msg, e)
     if not anime:
         msg.reply_text("Not found!")
         return
+    anime_id = anime[0].id
     res = client.get_anime_details(anime_id)
     if res.status == "finished_airing":
         status = "Finished Airing"
@@ -90,11 +90,12 @@ def search_manga(bot: Bot, update: Update, args: List[str]) -> None:
         return
     try:
         manga = client.search_manga(query)
-        manga_id = manga[0].id
     except APIException as e:
         refresh_token(msg, e)
     if not manga:
         msg.reply_text("Not found!")
+        return
+    manga_id = manga[0].id
     res = client.get_manga_details(manga_id)
     genres_list = []
     for i in res.genres:
