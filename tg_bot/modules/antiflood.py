@@ -27,6 +27,9 @@ def check_flood(bot: Bot, update: Update) -> str:
     if not user:  # ignore channels
         return ""
 
+    if user.id == 777000: # ignore Telegram
+        return ""
+
     # ignore admins
     if is_user_admin(chat, user.id):
         sql.update_flood(chat.id, None)
