@@ -16,11 +16,14 @@ from tg_bot.modules.helper_funcs.chat_status import user_admin
 def import_data(bot: Bot, update):
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
-    # TODO: allow uploading doc with command, not just as reply
-    # only work with a doc
-    if msg.reply_to_message and msg.reply_to_message.document:
+    file_id = None # type: Optional[str]
+    if msg.document:
+        file_id = msg.document.file_id
+    elif msg.reply_to_message and msg.reply_to_message.document:
+        file_id = msg.reply_to_message.document.file_id
+    if file_id:
         try:
-            file_info = bot.get_file(msg.reply_to_message.document.file_id)
+            file_info = bot.get_file(file_id)
         except BadRequest:
             msg.reply_text("Try downloading and reuploading the file as yourself before importing - this one seems "
                            "to be iffy!")
