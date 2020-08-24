@@ -18,7 +18,7 @@ def ud(bot: Bot, update: Update):
         text = text[1] if len(text) >  1 else ''
     else:
         text = msg.text
-    if text = '':
+    if text == '':
         update.message.reply_text("Please enter a query to look up on Urban Dictionary!")
     else:
         results = get(f'http://api.urbandictionary.com/v0/define?term={text}').json()
