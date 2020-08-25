@@ -465,6 +465,9 @@ def process_update(self, update):
             self.logger.exception('An uncaught error was raised while handling the error')
         return
 
+    if not update.effective_chat:
+        return
+
     now = datetime.datetime.utcnow()
     cnt = CHATS_CNT.get(update.effective_chat.id, 0)
 
