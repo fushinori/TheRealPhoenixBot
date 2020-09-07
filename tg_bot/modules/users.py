@@ -4,7 +4,7 @@ from typing import Optional
 
 from telegram import TelegramError, Chat, Message
 from telegram import Update, Bot
-from telegram.error import BadRequest, Unauthorized
+from telegram.error import BadRequest, Unauthorized, RetryAfter
 from telegram.ext import MessageHandler, Filters, CommandHandler
 from telegram.ext.dispatcher import run_async
 
@@ -112,6 +112,8 @@ def rem_chat(bot: Bot, update: Update):
         except (BadRequest, Unauthorized):
             kicked_chats += 1
             sql.rem_chat(id)
+        except RetryAfter as e:
+            sleep(e.retry_after)
     if kicked_chats >= 1:
         msg.reply_text("Done! {} chats were removed from the database!".format(kicked_chats))
     else:
