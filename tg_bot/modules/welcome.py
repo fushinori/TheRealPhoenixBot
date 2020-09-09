@@ -2,11 +2,12 @@ from html import escape
 import time
 import re
 from typing import Optional, List
+from functools import partial
 
 from telegram import Message, Chat, Update, Bot, User, CallbackQuery
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import BadRequest
-from telegram.ext import MessageHandler, Filters, CommandHandler, run_async, CallbackQueryHandler
+from telegram.ext import MessageHandler, Filters, CommandHandler, run_async, CallbackQueryHandler, JobQueue
 from telegram.utils.helpers import mention_html
 
 import tg_bot.modules.sql.welcome_sql as sql
@@ -30,6 +31,8 @@ ENUM_FUNC_MAP = {
     sql.Types.VOICE.value: dispatcher.bot.send_voice,
     sql.Types.VIDEO.value: dispatcher.bot.send_video
 }
+
+WELCOME_MUTED_USERS = set()
 
 
 # do not async
@@ -79,7 +82,7 @@ def send(update, message, keyboard, backup_message):
 
 
 @run_async
-def new_member(bot: Bot, update: Update):
+def new_member(bot: Bot, update: Update, job_queue: JobQueue):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     msg = update.effective_message # type: Optional[Message]
@@ -166,7 +169,8 @@ def new_member(bot: Bot, update: Update):
                 #Join welcome: strong mute
                 if welc_mutes == "strong":
                     new_join_mem = "[{}](tg://user?id={})".format(new_mem.first_name, user.id)
-                    msg.reply_text("{}, click the button below to prove you're human.".format(new_join_mem),
+                    wm_msg = msg.reply_text("{}, click the button below to prove you're human. " \
+                            "You've got 2 minutes.".format(new_join_mem),
                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text="Yes, I'm human.", 
                          callback_data="user_join_({})".format(new_mem.id))]]), parse_mode=ParseMode.MARKDOWN)
                     bot.restrict_chat_member(chat.id, new_mem.id, 
@@ -174,6 +178,13 @@ def new_member(bot: Bot, update: Update):
                                              can_send_media_messages=False, 
                                              can_send_other_messages=False, 
                                              can_add_web_page_previews=False)
+                    WELCOME_MUTED_USERS.add(user.id)
+                    job_queue.run_once(
+                        partial(
+                            check_welcomemute_list, chat.id, user.id, wm_msg.message_id
+                        ), 120, name="welcome-mute"
+                    )
+
         
             #delete_join
         prev_welc = sql.get_clean_pref(chat.id)
@@ -505,8 +516,23 @@ def user_button(bot: Bot, update: Update):
                                                    can_add_web_page_previews=True)
         bot.deleteMessage(chat.id, message.message_id)
         db_checks
+        WELCOME_MUTED_USERS.discard(user.id)
     else:
         query.answer(text="You're not allowed to do this!")
+
+
+def check_welcomemute_list(chat_id, user_id, message_id, bot, job):
+    if user_id in WELCOME_MUTED_USERS:
+        try:
+            bot.unban_chat_member(chat_id, user_id)
+            WELCOME_MUTED_USERS.discard(user_id)
+        except:
+            pass
+
+        try:
+            bot.edit_message_text("User has been kicked after failing to verify within 2 minutes.", chat_id, message_id)
+        except:
+            pass
 
 
 WELC_HELP_TXT = "Your group's welcome/goodbye messages can be personalised in multiple ways. If you want the messages" \
@@ -594,7 +620,7 @@ Welcome/bid farewell to members in your group with the help of this module!
 
 __mod_name__ = "Greetings"
 
-NEW_MEM_HANDLER = MessageHandler(Filters.status_update.new_chat_members, new_member)
+NEW_MEM_HANDLER = MessageHandler(Filters.status_update.new_chat_members, new_member, pass_job_queue=True)
 LEFT_MEM_HANDLER = MessageHandler(Filters.status_update.left_chat_member, left_member)
 WELC_PREF_HANDLER = CommandHandler("welcome", welcome, pass_args=True, filters=Filters.group)
 GOODBYE_PREF_HANDLER = CommandHandler("goodbye", goodbye, pass_args=True, filters=Filters.group)
