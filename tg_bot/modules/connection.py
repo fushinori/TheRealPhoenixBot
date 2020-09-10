@@ -16,6 +16,9 @@ user_admin = chat_status.user_admin
 ADMIN_STATUS = ("administrator", "creator")
 MEMBER_STAUS = ("member",)
 
+CONNECT_HELP_TXT = """Currently notes and filters are supported.
+You can add and remove notes and filters in PM."""
+
 
 @user_admin
 @run_async
@@ -297,7 +300,8 @@ def help_connect_chat(bot: Bot, update: Update):
         send_message(msg, "PM me with that command to get help.")
         return
     else:
-        send_message(msg, "All commands", parse_mode="markdown")
+        send_message(msg, CONNECT_HELP_TXT, parse_mode="markdown")
+
 
 
 @run_async
