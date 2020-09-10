@@ -20,10 +20,11 @@ from tg_bot.modules.helper_funcs.misc import paginate_modules
 
 PM_START_TEXT = """
 Hi {}, my name is {}!
-To add me to your groups, [click here!](http://telegram.me/TheRealPhoenixBot?startgroup=botstart)
 
-You can find the list of available commands with /help
+You can find the list of available commands with /help.
 """
+
+BOT_IMAGE = "https://telegra.ph/file/93612a540608640355f20.mp4"
 
 HELP_STRINGS = """
 Hey there! My name is *{}*.
@@ -139,9 +140,21 @@ def start(bot: Bot, update: Update, args: List[str]):
 
         else:
             first_name = update.effective_user.first_name
-            update.effective_message.reply_text(
-                PM_START_TEXT.format(escape_markdown(first_name), escape_markdown(bot.first_name), OWNER_ID),
-                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_animation(
+                BOT_IMAGE,
+                caption=PM_START_TEXT.format(escape_markdown(first_name), escape_markdown(bot.first_name), OWNER_ID),
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                text="Add Pɧơɛnıх to your group.",
+                                url="t.me/{}?startgroup=botstart".format(bot.username),
+                            )
+                        ]
+                    ]
+                ),
+            )
     else:
         update.effective_message.reply_text("Yo, why'd you summon me?")
 
