@@ -3,7 +3,7 @@ from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
-from tg_bot import DEL_CMDS, SUDO_USERS, WHITELIST_USERS, DEV_USERS, OWNER_ID
+from tg_bot import dispatcher, DEL_CMDS, SUDO_USERS, WHITELIST_USERS, DEV_USERS, OWNER_ID
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:
@@ -182,3 +182,62 @@ def user_can_ban(func):
         return func(bot, update, *args, **kwargs)
     
     return user_is_banhammer
+
+
+def user_can_mute(func):
+    @wraps(func)
+    def user_has_tape(bot: Bot, update: Update, *args, **kwargs):
+        user = update.effective_user.id
+        member = update.effective_chat.get_member(user)
+        if not (member.can_restrict_members or member.status == "creator") and not user in SUDO_USERS:
+            update.effective_message.reply_text("You ran out of tape!")
+            return ""
+        return func(bot, update, *args, **kwargs)
+    
+    return user_has_tape
+    
+    
+def user_can_warn(func):
+    @wraps(func)
+    def user_is_warnhammer(bot: Bot, update: Update, *args, **kwargs):
+        user = update.effective_user.id
+        member = update.effective_chat.get_member(user)
+        if not (member.can_restrict_members or member.status == "creator") and not user in SUDO_USERS:
+            update.effective_message.reply_text("You don't have the necessary permissions!")
+            return ""
+        return func(bot, update, *args, **kwargs)
+    
+    return user_is_warnhammer
+
+
+def connection_status(func):
+    @wraps(func)
+    def connected_status(bot: Bot, update: Update, *args, **kwargs):
+        conn = connected(
+            bot,
+            update,
+            update.effective_chat,
+            update.effective_user.id,
+            need_admin=False,
+        )
+
+        if conn:
+            chat = dispatcher.bot.getChat(conn)
+            update.__setattr__("_effective_chat", chat)
+            return func(bot, update, *args, **kwargs)
+        else:
+            if update.effective_message.chat.type == "private":
+                update.effective_message.reply_text(
+                    "Send /connect in a group that you and I have in common first."
+                )
+                return connected_status
+
+            return func(bot, update, *args, **kwargs)
+
+    return connected_status
+
+
+# Workaround for circular import with connection.py
+from tg_bot.modules import connection
+
+connected = connection.connected
