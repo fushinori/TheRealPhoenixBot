@@ -16,7 +16,8 @@ def refresh_token(msg: Message, error: APIException) -> None:
     if str(error.response) == "<Response [401]>":
         client.refresh_bearer_token(
             client_id=MAL_CLIENT_ID,
-            refresh_token=MAL_REFRESH_TOKEN
+            refresh_token=MAL_REFRESH_TOKEN,
+            client_secret=None
         )
         new_access_token = client.bearer_token
         new_refresh_token = client.refresh_token
@@ -58,7 +59,8 @@ def search_anime(bot: Bot, update: Update, args: List[str]) -> None:
     studios = ", ".join(studio_list)
     if res.status == "currently_airing":
         status = "Currently Airing"
-    premier = res.start_season
+    if res.start_season:
+        premier = res.start_season
     premiered = f"{premier.year} {premier.season.capitalize()}"
     image = res.main_picture.large
     text = f"<b>{res.title} ({res.alternative_titles.ja})</b>\n"
