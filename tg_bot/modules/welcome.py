@@ -181,7 +181,7 @@ def new_member(bot: Bot, update: Update, job_queue: JobQueue):
                     WELCOME_MUTED_USERS.add(user.id)
                     job_queue.run_once(
                         partial(
-                            check_welcomemute_list, chat.id, user.id, wm_msg.message_id
+                            check_welcomemute_list, chat.id, user, wm_msg.message_id, sent.message_id
                         ), 120, name="welcome-mute"
                     )
 
@@ -521,16 +521,22 @@ def user_button(bot: Bot, update: Update):
         query.answer(text="You're not allowed to do this!")
 
 
-def check_welcomemute_list(chat_id, user_id, message_id, bot, job):
+def check_welcomemute_list(chat_id, user, message_id, wmsg_id, bot, job):
+    user_id = user.id
+    name = user.first_name
     if user_id in WELCOME_MUTED_USERS:
         try:
             bot.unban_chat_member(chat_id, user_id)
             WELCOME_MUTED_USERS.discard(user_id)
+            bot.delete_message(chat_id, wmsg_id)
         except:
             pass
 
         try:
-            bot.edit_message_text("User has been kicked after failing to verify within 2 minutes.", chat_id, message_id)
+            bot.edit_message_text(
+                f"{mention_html(user_id, name)} has been kicked after failing to verify within 2 minutes.",
+                chat_id, message_id, parse_mode="HTML"
+            )
         except:
             pass
 
