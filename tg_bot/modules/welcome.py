@@ -90,12 +90,12 @@ def new_member(bot: Bot, update: Update, job_queue: JobQueue):
     should_welc, cust_welcome, welc_type = sql.get_welc_pref(chat.id)
     cust_welcome = markdown_to_html(cust_welcome)
     welc_mutes = sql.welcome_mutes(chat.id)
-    user_id = user.id
-    human_checks = sql.get_human_checks(user_id, chat.id)
     if should_welc:
         sent = None
         new_members = update.effective_message.new_chat_members
         for new_mem in new_members:
+            user_id = new_mem.id
+            human_checks = sql.get_human_checks(user_id, chat.id)
             # Give the owner a special welcome
             if new_mem.id == OWNER_ID:
                 update.effective_message.reply_text("Good to see you here, master!")
@@ -168,7 +168,7 @@ def new_member(bot: Bot, update: Update, job_queue: JobQueue):
                                              until_date=(int(time.time() + 24 * 60 * 60)))
                 #Join welcome: strong mute
                 if welc_mutes == "strong":
-                    new_join_mem = "[{}](tg://user?id={})".format(new_mem.first_name, user.id)
+                    new_join_mem = "[{}](tg://user?id={})".format(new_mem.first_name, user_id)
                     wm_msg = msg.reply_text("{}, click the button below to prove you're human. " \
                             "You've got 2 minutes.".format(new_join_mem),
                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text="Yes, I'm human.", 
@@ -178,10 +178,10 @@ def new_member(bot: Bot, update: Update, job_queue: JobQueue):
                                              can_send_media_messages=False, 
                                              can_send_other_messages=False, 
                                              can_add_web_page_previews=False)
-                    WELCOME_MUTED_USERS.add(user.id)
+                    WELCOME_MUTED_USERS.add(user_id)
                     job_queue.run_once(
                         partial(
-                            check_welcomemute_list, chat.id, user, wm_msg.message_id, sent.message_id
+                            check_welcomemute_list, chat.id, new_mem, wm_msg.message_id, sent.message_id
                         ), 120, name="welcome-mute"
                     )
 
