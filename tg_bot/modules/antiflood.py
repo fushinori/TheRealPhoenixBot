@@ -162,7 +162,7 @@ def flood(bot: Bot, update: Update):
         update.effective_message.reply_text("I'm not currently enforcing flood control!")
     else:
         update.effective_message.reply_text(
-            "I'm currently banning users if they send more than {} consecutive messages.".format(limit))
+            "I'm currently muting users if they send more than {} consecutive messages.".format(limit))
 
 
 def __migrate__(old_chat_id, new_chat_id):
