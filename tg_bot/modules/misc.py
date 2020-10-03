@@ -424,7 +424,7 @@ def sudo_list(bot: Bot, update: Update):
     for sudo in SUDO_USERS:
         user_id = int(sudo) # Ensure int
         user = bot.get_chat(user_id)
-        first_name = user.first_name
+        first_name = html.escape(user.first_name)
         reply += """• <a href="tg://user?id={}">{}</a>\n""".format(user_id, first_name)
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
 
@@ -435,8 +435,7 @@ def support_list(bot: Bot, update: Update):
     for support in SUPPORT_USERS:
         user_id = int(support) # Ensure int
         user = bot.get_chat(user_id)
-        first_name = user.first_name.replace(">", "&gt;")
-        first_name = first_name.replace("<", "&lt;")
+        first_name = html.escape(user.first_name)
         reply += """• <a href="tg://user?id={}">{}</a>\n""".format(user_id, first_name)
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
 
