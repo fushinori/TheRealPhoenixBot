@@ -1,6 +1,8 @@
 import html
+import json
 from typing import Optional, List
 
+import requests
 from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode
 from telegram.error import BadRequest
@@ -8,10 +10,10 @@ from telegram.ext import CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import escape_markdown, mention_html
 
-from tg_bot import dispatcher
+from tg_bot import dispatcher, SUDO_USERS, TOKEN
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin
-from tg_bot.modules.helper_funcs.extraction import extract_user
+from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.log_channel import loggable
 
 
@@ -25,7 +27,7 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
-
+    
     promoter = chat.get_member(user.id)
     
     if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
@@ -66,6 +68,43 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
            "\n<b>User:</b> {}".format(html.escape(chat.title),
                                       mention_html(user.id, user.first_name),
                                       mention_html(user_member.user.id, user_member.user.first_name))
+
+
+@run_async
+@bot_admin
+@can_promote
+@user_admin
+def set_title(bot: Bot, update: Update, args):
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
+    
+    promoter = chat.get_member(user.id)
+    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text("You don't have the necessary rights to do that!")
+        return
+    
+    user_id, title = extract_user_and_text(message, args)
+    if not user_id:
+        message.reply_text("You don't seem to be referring to a user.")
+        return
+    if not title:
+        message.reply_text("There's no title...")
+        return
+
+    response = requests.post(
+        f"https://api.telegram.org/bot{TOKEN}/setChatAdministratorCustomTitle"
+        f"?chat_id={chat.id}"
+        f"&user_id={user_id}"
+        f"&custom_title={title}"
+    )
+    
+    if response.status_code != 200:
+        resp_text = json.loads(response.text)
+        text = f"An error occurred:\n`{resp_text.get('description')}`"
+    else:
+        text = f"Successfully set title to `{title}`!"
+    message.reply_text(text, parse_mode="MARKDOWN")
 
 
 @run_async
@@ -220,6 +259,7 @@ __help__ = """
  - /unpin: unpins the currently pinned message.
  - /link: gets invitelink of the chat.
  - /promote: promotes the user you reply to.
+ - /settitle <title>: as a reply to a user, sets admin title.
  - /demote: demotes the user you reply to.
 
 """
@@ -232,6 +272,7 @@ UNPIN_HANDLER = CommandHandler("unpin", unpin, filters=Filters.group)
 INVITE_HANDLER = CommandHandler("link", invite, filters=Filters.group)
 
 PROMOTE_HANDLER = CommandHandler("promote", promote, pass_args=True, filters=Filters.group)
+SET_TITLE_HANDLER = CommandHandler("settitle", set_title, pass_args=True, filters=Filters.group)
 DEMOTE_HANDLER = CommandHandler("demote", demote, pass_args=True, filters=Filters.group)
 
 ADMINLIST_HANDLER = DisableAbleCommandHandler("adminlist", adminlist, filters=Filters.group)
@@ -242,3 +283,4 @@ dispatcher.add_handler(INVITE_HANDLER)
 dispatcher.add_handler(PROMOTE_HANDLER)
 dispatcher.add_handler(DEMOTE_HANDLER)
 dispatcher.add_handler(ADMINLIST_HANDLER)
+dispatcher.add_handler(SET_TITLE_HANDLER)
