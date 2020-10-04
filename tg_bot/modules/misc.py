@@ -19,6 +19,7 @@ from tg_bot.modules.sql.blacklistusers_sql import BLACKLIST_USERS
 from tg_bot.__main__ import GDPR
 from tg_bot.__main__ import STATS, USER_INFO
 from tg_bot.modules.disable import DisableAbleCommandHandler
+from tg_bot.modules.helper_funcs.chat_status import user_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 
@@ -328,6 +329,7 @@ def get_time(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
+@user_admin
 def echo(bot: Bot, update: Update):
     args = update.effective_message.text.split(None, 1)
     message = update.effective_message
@@ -523,7 +525,7 @@ RUNS_HANDLER = DisableAbleCommandHandler("runs", runs)
 SLAP_HANDLER = DisableAbleCommandHandler("slap", slap, pass_args=True)
 INFO_HANDLER = DisableAbleCommandHandler("info", info, pass_args=True)
 
-ECHO_HANDLER = CommandHandler("echo", echo, filters=CustomFilters.sudo_filter)
+ECHO_HANDLER = DisableAbleCommandHandler("echo", echo, filters=Filters.group)
 RAM_HANDLER = CommandHandler("ram", ram, filters=CustomFilters.sudo_filter)
 MD_HELP_HANDLER = CommandHandler("markdownhelp", markdown_help, filters=Filters.private)
 
