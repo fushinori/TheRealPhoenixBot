@@ -51,6 +51,9 @@ def unbl_user(bot: Bot, update: Update, args):
         
         
 def __user_info__(user_id):
+    if user_id in (777000, 1087968824):
+        return ""
+
     is_blacklisted = sql.is_user_blacklisted(user_id)
     
     text = "Blacklisted: <b>{}</b>"

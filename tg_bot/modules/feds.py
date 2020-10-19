@@ -426,6 +426,9 @@ def fed_ban(bot: Bot, update: Update, args: List[str]):
 		message.reply_text("This person is whitelisted so I can't ban them!")
 		return
 
+	if int(user_id) in (777000, 1087968824):
+		message.reply_text("I'm not fbanning Telegram bots.")
+
 	try:
 		user_chat = bot.get_chat(user_id)
 	except BadRequest as excp:
