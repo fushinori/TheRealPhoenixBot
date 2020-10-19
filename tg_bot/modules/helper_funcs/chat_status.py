@@ -25,6 +25,7 @@ def is_user_ban_protected(chat: Chat, user_id: int, member: ChatMember = None) -
 def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
     if chat.type == 'private' \
             or user_id in SUDO_USERS \
+            or user_id in (1087968824) \
             or chat.all_members_are_administrators:
         return True
 
@@ -177,8 +178,7 @@ def user_can_ban(func):
         user = update.effective_user.id
         member = update.effective_chat.get_member(user)
         if not (member.can_restrict_members or member.status == "creator") \
-                and user not in SUDO_USERS and user not in (777000,
-                                                            1087968824):
+                and user not in SUDO_USERS and user not in (1087968824):
             update.effective_message.reply_text("Sorry son, but you're not worthy to wield the banhammer.")
             return ""
         return func(bot, update, *args, **kwargs)
@@ -192,8 +192,7 @@ def user_can_mute(func):
         user = update.effective_user.id
         member = update.effective_chat.get_member(user)
         if not (member.can_restrict_members or member.status == "creator") \
-                and user not in SUDO_USERS and user not in (777000,
-                                                            1087968824):
+                and user not in SUDO_USERS and user not in (1087968824):
             update.effective_message.reply_text("You ran out of tape!")
             return ""
         return func(bot, update, *args, **kwargs)
@@ -207,8 +206,7 @@ def user_can_warn(func):
         user = update.effective_user.id
         member = update.effective_chat.get_member(user)
         if not (member.can_restrict_members or member.status == "creator") \
-            and user not in SUDO_USERS and user not in (777000,
-                                                        1087968824):
+            and user not in SUDO_USERS and user not in (1087968824):
             update.effective_message.reply_text("You don't have the necessary permissions!")
             return ""
         return func(bot, update, *args, **kwargs)
