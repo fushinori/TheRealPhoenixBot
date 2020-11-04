@@ -11,7 +11,7 @@ CMD_STARTERS = ('/', '!')
 class AntiSpam:
 
     def __init__(self):
-        self.whitelist = (SUDO_USERS or []) + (DEV_USERS or [])
+        self.whitelist = (list(SUDO_USERS) or []) + (list(DEV_USERS) or [])
         #Values are HIGHLY experimental, its recommended you pay attention to our commits as we will be adjusting the values over time with what suits best.
         Duration.CUSTOM = 15  # Custom duration, 15 seconds
         self.sec_limit = RequestRate(6, Duration.CUSTOM)  # 6 / Per 15 Seconds
@@ -66,7 +66,7 @@ class CustomCommandHandler(tg.CommandHandler):
                     else:
                         res = self.filters(message)
                     if command[0].lower() in self.command and command[1].lower() == message.bot.username.lower():
-                        if SpamChecker.check_user(user_id):
+                        if SpamChecker.check_user(update.effective_user.id):
                             return None
                     return res and (command[0].lower() in self.command
                                     and command[1].lower() == message.bot.username.lower())
