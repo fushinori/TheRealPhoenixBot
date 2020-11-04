@@ -17,3 +17,4 @@ wikipedia
 malclient
 coffeehouse
 tswift
+pyrate-limiter
