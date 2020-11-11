@@ -505,7 +505,6 @@ def user_button(bot: Bot, update: Update):
     query = update.callback_query  # type: Optional[CallbackQuery]
     match = re.match(r"user_join_\((.+?)\)", query.data)
     message = update.effective_message  # type: Optional[Message]
-    db_checks = sql.set_human_checks(user.id, chat.id)
     join_user =  int(match.group(1))
     
     if join_user == user.id:
@@ -515,7 +514,7 @@ def user_button(bot: Bot, update: Update):
                                                    can_send_other_messages=True, 
                                                    can_add_web_page_previews=True)
         bot.deleteMessage(chat.id, message.message_id)
-        db_checks
+        sql.set_human_checks(user.id, chat.id)
         WELCOME_MUTED_USERS.discard(user.id)
     else:
         query.answer(text="You're not allowed to do this!")
