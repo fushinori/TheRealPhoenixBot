@@ -173,17 +173,23 @@ def new_member(bot: Bot, update: Update, job_queue: JobQueue):
                             "You've got 2 minutes.".format(new_join_mem),
                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text="Yes, I'm human.", 
                          callback_data="user_join_({})".format(new_mem.id))]]), parse_mode=ParseMode.MARKDOWN)
-                    bot.restrict_chat_member(chat.id, new_mem.id, 
-                                             can_send_messages=False, 
-                                             can_send_media_messages=False, 
-                                             can_send_other_messages=False, 
-                                             can_add_web_page_previews=False)
-                    WELCOME_MUTED_USERS.add(user_id)
-                    job_queue.run_once(
-                        partial(
-                            check_welcomemute_list, chat.id, new_mem, wm_msg.message_id, sent.message_id
-                        ), 120, name="welcome-mute"
-                    )
+                    try:
+                        bot.restrict_chat_member(chat.id, new_mem.id, 
+                                                 can_send_messages=False, 
+                                                 can_send_media_messages=False, 
+                                                 can_send_other_messages=False, 
+                                                 can_add_web_page_previews=False)
+                        WELCOME_MUTED_USERS.add(user_id)
+                        job_queue.run_once(
+                            partial(
+                                check_welcomemute_list, chat.id, new_mem, wm_msg.message_id, sent.message_id
+                            ), 120, name="welcome-mute"
+                        )
+                    except BadRequest:
+                        wm_msg.edit_text(
+                            "I don't have the necessary permissions! Turn off welcome-muting "
+                            "or give me permissions to restrict members."
+                        )
 
         
             #delete_join
@@ -527,17 +533,17 @@ def check_welcomemute_list(chat_id, user, message_id, wmsg_id, bot, job):
         try:
             bot.unban_chat_member(chat_id, user_id)
             WELCOME_MUTED_USERS.discard(user_id)
-            bot.delete_message(chat_id, wmsg_id)
-        except:
-            pass
-
-        try:
             bot.edit_message_text(
                 f"{mention_html(user_id, name)} has been kicked after failing to verify within 2 minutes.",
                 chat_id, message_id, parse_mode="HTML"
             )
-        except:
-            pass
+        except BadRequest:
+            bot.edit_message_text(
+                "Failed to kick user. Make sure I'm admin or turn off welcome-muting.",
+                chat_id, message_id
+            )
+        finally:
+            bot.delete_message(chat_id, wmsg_id)
 
 
 WELC_HELP_TXT = "Your group's welcome/goodbye messages can be personalised in multiple ways. If you want the messages" \
