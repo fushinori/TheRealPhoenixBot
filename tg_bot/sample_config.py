@@ -25,6 +25,7 @@ class Config(object):
     URL = None
 
     # OPTIONAL
+    DEV_USERS = []
     SUDO_USERS = []  # List of id's (not usernames) for users which have sudo access to the bot.
     SUPPORT_USERS = []  # List of id's (not usernames) for users which are allowed to gban, but can also be banned.
     WHITELIST_USERS = []  # List of id's (not usernames) for users which WONT be banned/kicked by the bot.
@@ -36,7 +37,14 @@ class Config(object):
     WORKERS = 8  # Number of subthreads to use. This is the recommended amount - see for yourself what works best!
     BAN_STICKER = 'CAADAgADOwADPPEcAXkko5EB3YGYAg'  # banhammer marie sticker
     ALLOW_EXCL = False  # Allow ! commands as well as /
-
+    MAL_REFRESH_TOKEN = ''
+    MAL_ACCESS_TOKEN = ''
+    MAL_CLIENT_ID = ''
+    MOE_API = ''
+    WALL_API = ''
+    LASTFM_API_KEY = ''
+    AI_API_KEY = ''
+    BL_CHATS = []
 
 class Production(Config):
     LOGGER = False
