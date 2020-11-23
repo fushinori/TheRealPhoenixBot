@@ -32,6 +32,9 @@ def check_flood(bot: Bot, update: Update) -> str:
     if not user:  # ignore channels
         return ""
 
+    if user.id == 777000:
+        return ""
+
     # ignore admins and whitelists
     if (is_user_admin(chat, user.id) or user.id in WHITELIST_USERS or user.id in SUDO_USERS):
         sql.update_flood(chat.id, None)
@@ -95,7 +98,14 @@ def flood_button(bot: Bot, update: Update):
         user_id = match.group(1)
         chat = update.effective_chat.id
         try:
-            bot.restrict_chat_member(chat.id, user.id, can_send_messages=True)
+            bot.restrict_chat_member(
+                chat,
+                int(user_id),
+                can_send_messages=True,
+                can_send_media_messages=True,
+                can_send_other_messages=True,
+                can_add_web_page_previews=True
+            )
             update.effective_message.edit_text(
                 f"Unmuted by {mention_html(user.id, user.first_name)}.",
                 parse_mode="HTML")
