@@ -313,17 +313,20 @@ __help__ = """
 Antiflood allows you to take action on users that send more than x messages in a row. Exceeding the set flood \
 will result in restricting that user.
 
- This will mute users if they send more than 10 messages in a row, bots are ignored.
- • `/flood`*:* Get the current flood control setting
+ • `/flood`*:* Get the current flood control setting.
 
 • *Admins only:*
  • `/setflood <int/'no'/'off'>`*:* enables or disables flood control
  *Example:* `/setflood 10`
- • `/setfloodmode <ban/kick/mute/tban/tmute> <value>`*:* Action to perform when user have exceeded flood limit. ban/kick/mute/tmute/tban
+ This sets the limit of max consecutive messages \
+to 10 and restricts the user after that.
+
+ • `/setfloodmode <mode> <value>`*:* action to perform when user exceeds the flood limit.
+ The available modes are ban/kick/mute/tmute/tban.
 
 • *Note:*
- • Value must be filled for tban and tmute!!
- It can be:
+ • Value must be given for tban and tmute modes.
+ Example formats for the value include:
  `5m` = 5 minutes
  `6h` = 6 hours
  `3d` = 3 days
@@ -345,6 +348,3 @@ dispatcher.add_handler(FLOOD_QUERY_HANDLER)
 dispatcher.add_handler(SET_FLOOD_HANDLER)
 dispatcher.add_handler(SET_FLOOD_MODE_HANDLER)
 dispatcher.add_handler(FLOOD_HANDLER)
-
-__handlers__ = [(FLOOD_BAN_HANDLER, FLOOD_GROUP), SET_FLOOD_HANDLER,
-                FLOOD_HANDLER, SET_FLOOD_MODE_HANDLER]
