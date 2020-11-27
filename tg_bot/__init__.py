@@ -3,6 +3,8 @@ import os
 import sys
 
 import telegram.ext as tg
+from googletrans import Translator
+
 
 # enable logging
 logging.basicConfig(
@@ -154,3 +156,7 @@ tg.MessageHandler = CustomMessageHandler
 
 if ALLOW_EXCL:
     tg.CommandHandler = CustomCommandHandler
+
+
+# Initialize Translator
+trl = Translator()
