@@ -1,120 +1,62 @@
-from emoji import UNICODE_EMOJI
-from googletrans import Translator, LANGUAGES
-from telegram import Bot, Update, ParseMode
-from telegram.ext import run_async
+from gpytranslate import Translator
+from pyrogram import filters
+from pyrogram.types import Message
 
-from tg_bot import dispatcher, trl
-from tg_bot.modules.disable import DisableAbleCommandHandler
+from tg_bot import pg
 
 
-@run_async
-def totranslate(bot: Bot, update: Update):
-    msg = update.effective_message
-    problem_lang_code = []
-    for key in LANGUAGES:
-        if "-" in key:
-            problem_lang_code.append(key)
-    try:
-        if msg.reply_to_message and msg.reply_to_message.text:
+trans = Translator()
 
-            args = update.effective_message.text.split(None, 1)
-            text = msg.reply_to_message.text
-            message = update.effective_message
-            dest_lang = None
+LANG_CODES = [
+    'af', 'sq', 'am', 'ar', 'hy', 'az', 'eu', 'be', 'bn', 'bs',
+    'bg', 'ca', 'ceb', 'ny', 'zh-cn', 'zh-tw', 'co', 'hr', 'cs', 'da', 'nl',
+    'en', 'eo', 'et', 'tl', 'fi', 'fr', 'fy', 'gl', 'ka', 'de', 'el', 'gu',
+    'ht', 'ha', 'haw', 'iw', 'he', 'hi', 'hmn', 'hu', 'is', 'ig', 'id', 'ga',
+    'it', 'ja', 'jw', 'kn', 'kk', 'km', 'ko', 'ku', 'ky', 'lo', 'la', 'lv',
+    'lt', 'lb', 'mk', 'mg', 'ms', 'ml', 'mt', 'mi', 'mr', 'mn', 'my', 'ne',
+    'no', 'or', 'ps', 'fa', 'pl', 'pt', 'pa', 'ro', 'ru', 'sm', 'gd', 'sr',
+    'st', 'sn', 'sd', 'si', 'sk', 'sl', 'so', 'es', 'su', 'sw', 'sv', 'tg',
+    'ta', 'te', 'th', 'tr', 'uk', 'ur', 'ug', 'uz', 'vi', 'cy', 'xh', 'yi',
+    'yo', 'zu']
 
-            try:
-                source_lang = args[1].split(None, 1)[0]
-            except:
-                source_lang = "en"
 
-            if source_lang.count('-') == 2:
-                for lang in problem_lang_code:
-                    if lang in source_lang:
-                        if source_lang.startswith(lang):
-                            dest_lang = source_lang.rsplit("-", 1)[1]
-                            source_lang = source_lang.rsplit("-", 1)[0]
-                        else:
-                            dest_lang = source_lang.split("-", 1)[1]
-                            source_lang = source_lang.split("-", 1)[0]
-            elif source_lang.count('-') == 1:
-                for lang in problem_lang_code:
-                    if lang in source_lang:
-                        dest_lang = source_lang
-                        source_lang = None
-                        break
-                if dest_lang == None:
-                    dest_lang = source_lang.split("-")[1]
-                    source_lang = source_lang.split("-")[0]
-            else:
-                dest_lang = source_lang
-                source_lang = None
-
-            exclude_list = UNICODE_EMOJI.keys()
-            for emoji in exclude_list:
-                if emoji in text:
-                    text = text.replace(emoji, '')
-
-            if source_lang == None:
-                detection = trl.detect(text)
-                tekstr = trl.translate(text, dest=dest_lang)
-                return message.reply_text(
-                    f"Translated from `{detection.lang}` to `{dest_lang}`:\n`{tekstr.text}`",
-                    parse_mode=ParseMode.MARKDOWN)
-            else:
-                tekstr = trl.translate(text, dest=dest_lang, src=source_lang)
-                message.reply_text(f"Translated from `{source_lang}` to `{dest_lang}`:\n`{tekstr.text}`",
-                                   parse_mode=ParseMode.MARKDOWN)
-        else:
-            args = update.effective_message.text.split(None, 2)
-            message = update.effective_message
-            source_lang = args[1]
-            text = args[2]
-            exclude_list = UNICODE_EMOJI.keys()
-            for emoji in exclude_list:
-                if emoji in text:
-                    text = text.replace(emoji, '')
-            dest_lang = None
-            temp_source_lang = source_lang
-            if temp_source_lang.count('-') == 2:
-                for lang in problem_lang_code:
-                    if lang in temp_source_lang:
-                        if temp_source_lang.startswith(lang):
-                            dest_lang = temp_source_lang.rsplit("-", 1)[1]
-                            source_lang = temp_source_lang.rsplit("-", 1)[0]
-                        else:
-                            dest_lang = temp_source_lang.split("-", 1)[1]
-                            source_lang = temp_source_lang.split("-", 1)[0]
-            elif temp_source_lang.count('-') == 1:
-                for lang in problem_lang_code:
-                    if lang in temp_source_lang:
-                        dest_lang = None
-                        break
-                    else:
-                        dest_lang = temp_source_lang.split("-")[1]
-                        source_lang = temp_source_lang.split("-")[0]
-            if dest_lang == None:
-                detection = trl.detect(text)
-                tekstr = trl.translate(text, dest=source_lang)
-                return message.reply_text(
-                    "Translated from `{}` to `{}`:\n`{}`".format(detection.lang, source_lang, tekstr.text),
-                    parse_mode=ParseMode.MARKDOWN)
-            else:
-                tekstr = trl.translate(text, dest=dest_lang, src=source_lang)
-                message.reply_text("Translated from `{}` to `{}`:\n`{}`".format(source_lang, dest_lang, tekstr.text),
-                                   parse_mode=ParseMode.MARKDOWN)
-
-    except IndexError:
-        pass
-    except ValueError:
-        update.effective_message.reply_text("The intended language is not found!")
-    else:
+@pg.on_message(filters.command(["tl", "tr"]))
+async def translate(_, message: Message) -> None:
+    reply_msg = message.reply_to_message
+    if not reply_msg:
+        await message.reply_text("Reply to a message to translate it!")
         return
+    try:
+        args = message.text.split()[1].lower()
+        if "//" in args:
+            source = args.split("//")[0]
+            dest = args.split("//")[1]
+        else:
+            source = await trans.detect(reply_msg.text)
+            dest = args
+    except IndexError:
+        source = await trans.detect(reply_msg.text)
+        dest = "en"
+    if not (source in LANG_CODES and dest in LANG_CODES):
+        await message.reply_text("Invalid language codes provided!")
+        return
+    translation = await trans(reply_msg.text,
+                              sourcelang=source, targetlang=dest)
+    reply = f"<b>Translated from {source} to {dest}</b>:\n" \
+        f"<code>{translation.text}</code>"
+
+    await message.reply_text(reply, parse_mode="html")
 
 
-__help__ = """- /tl <language code> as the reply to a message or preceding the text you want to translate.
-"""
 __mod_name__ = "Translation"
 
-TOTRANSLATE_HANDLER = DisableAbleCommandHandler("tl", totranslate)
+__help__ = """
+Use this module to translate stuff... duh!
 
-dispatcher.add_handler(TOTRANSLATE_HANDLER)
+**Commands:**
+• `/tr` or `/tl`: as a reply to a message, translates it!
+Additional arguments you can use:
+You can provide a destination language or both a \
+source and destination language separated by //
+Example: `/tl en` or `/tl en//ja`. The second example will translate \
+text from English to Japanese."""

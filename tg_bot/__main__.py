@@ -3,6 +3,7 @@ import importlib
 import re
 from typing import Optional, List
 
+from pyrogram import idle
 from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import Unauthorized, BadRequest, TimedOut, NetworkError, ChatMigrated, TelegramError
@@ -10,7 +11,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryH
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
-from tg_bot import dispatcher, updater, TOKEN, WEBHOOK, OWNER_ID, DONATION_LINK, CERT_PATH, PORT, URL, LOGGER, \
+from tg_bot import pg, dispatcher, updater, TOKEN, WEBHOOK, OWNER_ID, DONATION_LINK, CERT_PATH, PORT, URL, LOGGER, \
     ALLOW_EXCL
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
@@ -460,7 +461,8 @@ def main():
     else:
         LOGGER.info("Using long polling.")
         updater.start_polling(timeout=15, read_latency=4)
-
+    pg.start()
+    idle()
     updater.idle()
 
 

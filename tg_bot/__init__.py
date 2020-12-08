@@ -3,8 +3,7 @@ import os
 import sys
 
 import telegram.ext as tg
-from googletrans import Translator
-
+from pyrogram import Client
 
 # enable logging
 logging.basicConfig(
@@ -71,6 +70,8 @@ if ENV:
     MAL_CLIENT_ID = os.environ.get('MAL_CLIENT_ID', "")
     MAL_ACCESS_TOKEN = os.environ.get('MAL_ACCESS_TOKEN', "")
     MAL_REFRESH_TOKEN = os.environ.get('MAL_REFRESH_TOKEN', "")
+    API_ID = os.environ.get('API_ID', "")
+    API_HASH = os.environ.get('API_HASH', "")
     try:
         BL_CHATS = set(int(x) for x in os.environ.get('BL_CHATS', "").split())
     except ValueError:
@@ -128,6 +129,8 @@ else:
     MAL_CLIENT_ID = Config.MAL_CLIENT_ID
     MAL_ACCESS_TOKEN = Config.MAL_ACCESS_TOKEN
     MAL_REFRESH_TOKEN = Config.MAL_REFRESH_TOKEN
+    API_ID = Config.API_ID
+    API_HASH = Config.API_HASH
     try:
         BL_CHATS = set(int(x) for x in Config.BL_CHATS or [])
     except ValueError:
@@ -158,5 +161,10 @@ if ALLOW_EXCL:
     tg.CommandHandler = CustomCommandHandler
 
 
-# Initialize Translator
-trl = Translator()
+# Pyrogram Client
+pg = Client(
+        "Phoenix",
+        api_id=API_ID,
+        api_hash=API_HASH,
+        bot_token=TOKEN
+    )
