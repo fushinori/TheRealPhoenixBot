@@ -1,16 +1,12 @@
-import logging
 import os
 import sys
 
 import telegram.ext as tg
+from loguru import logger
 from pyrogram import Client
 
 # enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO)
-
-LOGGER = logging.getLogger(__name__)
+LOGGER = logger
 
 # if version < 3.6, stop bot.
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:

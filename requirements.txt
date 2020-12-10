@@ -20,3 +20,4 @@ tswift
 pyrate-limiter
 pyrogram==1.0.7
 TgCrypto
+loguru
