@@ -7,18 +7,6 @@ from tg_bot import pg
 
 trans = Translator()
 
-LANG_CODES = [
-    'af', 'sq', 'am', 'ar', 'hy', 'az', 'eu', 'be', 'bn', 'bs',
-    'bg', 'ca', 'ceb', 'ny', 'zh-cn', 'zh-tw', 'co', 'hr', 'cs', 'da', 'nl',
-    'en', 'eo', 'et', 'tl', 'fi', 'fr', 'fy', 'gl', 'ka', 'de', 'el', 'gu',
-    'ht', 'ha', 'haw', 'iw', 'he', 'hi', 'hmn', 'hu', 'is', 'ig', 'id', 'ga',
-    'it', 'ja', 'jw', 'kn', 'kk', 'km', 'ko', 'ku', 'ky', 'lo', 'la', 'lv',
-    'lt', 'lb', 'mk', 'mg', 'ms', 'ml', 'mt', 'mi', 'mr', 'mn', 'my', 'ne',
-    'no', 'or', 'ps', 'fa', 'pl', 'pt', 'pa', 'ro', 'ru', 'sm', 'gd', 'sr',
-    'st', 'sn', 'sd', 'si', 'sk', 'sl', 'so', 'es', 'su', 'sw', 'sv', 'tg',
-    'ta', 'te', 'th', 'tr', 'uk', 'ur', 'ug', 'uz', 'vi', 'cy', 'xh', 'yi',
-    'yo', 'zu']
-
 
 @pg.on_message(filters.command(["tl", "tr"]))
 async def translate(_, message: Message) -> None:
@@ -37,9 +25,6 @@ async def translate(_, message: Message) -> None:
     except IndexError:
         source = await trans.detect(reply_msg.text)
         dest = "en"
-    if not (source in LANG_CODES and dest in LANG_CODES):
-        await message.reply_text("Invalid language codes provided!")
-        return
     translation = await trans(reply_msg.text,
                               sourcelang=source, targetlang=dest)
     reply = f"<b>Translated from {source} to {dest}</b>:\n" \
@@ -48,15 +33,27 @@ async def translate(_, message: Message) -> None:
     await message.reply_text(reply, parse_mode="html")
 
 
+@pg.on_message(filters.command("langs"))
+async def languages(_, message: Message) -> None:
+    await message.reply_text(
+        "Click [here](https://cloud.google.com/translate/docs/languages)"
+        " to see the list of supported language codes!",
+        disable_web_page_preview=True
+    )
+
+
 __mod_name__ = "Translation"
 
 __help__ = """
 Use this module to translate stuff... duh!
 
-**Commands:**
-• `/tr` or `/tl`: as a reply to a message, translates it!
-Additional arguments you can use:
-You can provide a destination language or both a \
-source and destination language separated by //
-Example: `/tl en` or `/tl en//ja`. The second example will translate \
-text from English to Japanese."""
+*Commands:*
+• `/tl` (or `/tr`): as a reply to a message, translates it to English.
+
+• `/tl <lang>`: translates to <lang>
+eg: `/tl ja`: translates to Japanese.
+
+• `/tl <source>//<dest>`: translates from <source> to <lang>.
+eg: `/tl ja//en`: translates from Japanese to English.
+
+• `/langs`: get a list of supported languages for translation."""
