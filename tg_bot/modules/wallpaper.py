@@ -1,9 +1,10 @@
 # Wallpapers module by @TheRealPhoenix using wall.alphacoders.com
 
-import requests as r
-from random import randint
+from random import choice
 from time import sleep
+from urllib.parse import quote
 
+import requests as r
 from telegram import Message, Chat, Update, Bot
 from telegram.ext import run_async
 
@@ -22,18 +23,18 @@ def wall(bot: Bot, update: Update, args):
         return
     else:
         caption = query
-        term = query.replace(" ", "%20")
+        term = quote(caption)
         json_rep = r.get(f"https://wall.alphacoders.com/api2.0/get.php?auth={WALL_API}&method=search&term={term}").json()
         if not json_rep.get("success"):
-            msg.reply_text("An error occurred! Report this @PhoenixSupport")
+            msg.reply_text("Something went wrong...")
+            return
         else:
             wallpapers = json_rep.get("wallpapers")
             if not wallpapers:
                 msg.reply_text("No results found!")
                 return
             else:
-                index = randint(0, len(wallpapers)-1) # Choose random index
-                wallpaper = wallpapers[index]
+                wallpaper = choice(wallpapers)
                 wallpaper = wallpaper.get("url_image")
                 wallpaper = wallpaper.replace("\\", "")
                 bot.send_photo(chat_id, photo=wallpaper, caption='Preview',
