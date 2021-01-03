@@ -55,8 +55,14 @@ def broadcast(bot: Bot, update: Update):
         failed = 0
         for chat in chats:
             try:
-                bot.sendMessage(int(chat.chat_id), to_send[1])
+                bot.sendMessage(
+                    int(chat.chat_id),
+                    to_send[1],
+                    parse_mode="MARKDOWN"
+                )
                 sleep(0.1)
+            except RetryAfter as e:
+                sleep(e.retry_after)
             except TelegramError:
                 failed += 1
                 LOGGER.warning("Couldn't send broadcast to %s, group name %s", str(chat.chat_id), str(chat.chat_name))
