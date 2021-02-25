@@ -14,7 +14,7 @@ from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import send_to_list
-from tg_bot.modules.sql.users_sql import get_all_chats, get_user_com_chats
+from tg_bot.modules.sql.users_sql import get_user_com_chats
 
 GBAN_ENFORCE_GROUP = 6
 
@@ -192,9 +192,9 @@ def ungban(bot: Bot, update: Update, args: List[str]):
                                                    mention_html(user_chat.id, user_chat.first_name)),
                  html=True)
 
-    chats = get_all_chats()
+    chats = get_user_com_chats(user_id)
     for chat in chats:
-        chat_id = chat.chat_id
+        chat_id = int(chat)
 
         # Check if this group has disabled gbans
         if not sql.does_chat_gban(chat_id):
