@@ -78,7 +78,7 @@ def last_fm(bot: Bot, update: Update):
     
     
 __help__ = """
-Share what you're what listening to with the help of this module!
+Share what you're listening to with the help of this module!
 
 *Available commands:*
  - /setuser <username>: sets your last.fm username.
