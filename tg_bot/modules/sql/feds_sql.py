@@ -1,3 +1,4 @@
+import ast
 import threading
 
 from sqlalchemy import Column, String, UnicodeText, func, distinct, Integer, Boolean
@@ -173,8 +174,8 @@ def search_user_in_fed(fed_id, user_id):
 	getfed = FEDERATION_BYFEDID.get(fed_id)
 	if getfed == None:
 		return False
-	getfed = eval(getfed['fusers'])['members']
-	if user_id in eval(getfed):
+	getfed = ast.literal_eval(getfed['fusers'])['members']
+	if user_id in ast.literal_eval(getfed):
 		return True
 	else:
 		return False
@@ -190,7 +191,7 @@ def user_demote_fed(fed_id, user_id):
 		fed_rules = getfed['frules']
 		# Temp set
 		try:
-			members = eval(eval(getfed['fusers'])['members'])
+			members = ast.literal_eval(ast.literal_eval(getfed['fusers'])['members'])
 		except ValueError:
 			return False
 		members.remove(user_id)
@@ -226,7 +227,7 @@ def user_join_fed(fed_id, user_id):
 		fed_name = getfed['fname']
 		fed_rules = getfed['frules']
 		# Temp set
-		members = eval(eval(getfed['fusers'])['members'])
+		members = ast.literal_eval(ast.literal_eval(getfed['fusers'])['members'])
 		members.append(user_id)
 		# Set user
 		FEDERATION_BYOWNER[str(owner_id)]['fusers'] = str({'owner': str(owner_id), 'members': str(members)})
@@ -272,15 +273,15 @@ def all_fed_users(fed_id):
 		getfed = FEDERATION_BYFEDID.get(str(fed_id))
 		if getfed == None:
 			return False
-		fed_owner = eval(eval(getfed['fusers'])['owner'])
-		fed_admins = eval(eval(getfed['fusers'])['members'])
+		fed_owner = ast.literal_eval(ast.literal_eval(getfed['fusers'])['owner'])
+		fed_admins = ast.literal_eval(ast.literal_eval(getfed['fusers'])['members'])
 		fed_admins.append(fed_owner)
 		return fed_admins
 
 def all_fed_members(fed_id):
 	with FEDS_LOCK:
 		getfed = FEDERATION_BYFEDID.get(str(fed_id))
-		fed_admins = eval(eval(getfed['fusers'])['members'])
+		fed_admins = ast.literal_eval(ast.literal_eval(getfed['fusers'])['members'])
 		return fed_admins
 
 

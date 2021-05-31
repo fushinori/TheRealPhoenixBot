@@ -1,3 +1,4 @@
+import ast
 import html
 from io import BytesIO
 from typing import Optional, List
@@ -233,7 +234,7 @@ def user_join_fed(bot: Bot, update: Update, args: List[str]):
 		getuser = sql.search_user_in_fed(fed_id, user_id)
 		fed_id = sql.get_fed_id(chat.id)
 		info = sql.get_fed_info(fed_id)
-		get_owner = eval(info['fusers'])['owner']
+		get_owner = ast.literal_eval(info['fusers'])['owner']
 		get_owner = bot.get_chat(get_owner).id
 		if user_id == get_owner:
 			update.effective_message.reply_text("Why are you trying to promote the federation owner?")
@@ -1045,7 +1046,7 @@ def is_user_fed_owner(fed_id, user_id):
 	getsql = sql.get_fed_info(fed_id)
 	if getsql == False:
 		return False
-	getfedowner = eval(getsql['fusers'])
+	getfedowner = ast.literal_eval(getsql['fusers'])
 	if getfedowner == None or getfedowner == False:
 		return False
 	getfedowner = getfedowner['owner']
