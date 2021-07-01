@@ -72,8 +72,8 @@ def reply_afk(bot: Bot, update: Update):
                     if not reason:
                         res = "{} is AFK!".format(fst_name)
                     else:
-                        res = "{} is AFK!\nReason: {}".format(fst_name, reason)
-                    message.reply_text(res)
+                        res = "{} is AFK!\nReason: `{}`".format(fst_name, reason)
+                    message.reply_text(res, parse_mode="MARKDOWN")
 
 
 def __gdpr__(user_id):
