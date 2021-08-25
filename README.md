@@ -11,6 +11,9 @@ OR
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/rsktg/TheRealPhoenixBot.git)
 
+### Note
+We don't support Heroku anymore. If you can't get it working on Heroku, please don't come to the support chat and complain/ask for assistance.
+
 ## Credits
 • [SkittBot](https://github.com/skittles9823/SkittBot) for stickers module.
 • [SaitamaRobot](https://github.com/AnimeKaizoku/SaitamaRobot) for evaluator and more.
