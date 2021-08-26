@@ -5,7 +5,7 @@ sqlalchemy
 python-telegram-bot==11.1.0
 psycopg2-binary
 feedparser
-gpytranslate
+gpytranslate>=1.3.0
 Pillow>=4.2.0
 aiohttp>=2.2.5
 pynewtonmath
@@ -18,6 +18,4 @@ malclient
 coffeehouse
 tswift
 pyrate-limiter
-pyrogram==1.0.7
-TgCrypto
 loguru
